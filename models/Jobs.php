@@ -42,6 +42,15 @@ class Jobs extends \lithium\data\Model {
    * @var string
    */
   public $workerName;
+
+  protected $_meta = array(
+    'name' => null,
+    'title' => null,
+    'class' => null,
+    'source' => null,
+    'connection' => 'delayed_job',
+    'initialized' => false
+  );
   
   public function __construct() {
     $this->workerName = 'host:'.gethostname().' pid:'.getmypid();
