@@ -20,7 +20,7 @@ class Jobs extends \lithium\console\Command {
    * Clear the delayed_job queue.
    */
   public function clear() {
-    DelayedJobs::deleteAll();
+    DelayedJobs::remove();
   }
   
   /**
