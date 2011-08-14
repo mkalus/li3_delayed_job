@@ -170,6 +170,7 @@ class Jobs extends \lithium\data\Model {
    */
   protected function invoke() {
     $this->payload->perform();
+    unset($this->payload);
   }
   
   protected function lockExclusively($maxRunTime, $worker) {
