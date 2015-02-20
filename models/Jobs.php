@@ -22,14 +22,22 @@ class Jobs extends \lithium\data\Model {
   /**
    * Indexes
    * @var array
-  */
+   */
   static public $_indexes = array(
     'run_at' =>  array(
       'keys' => array('run_at' => 1),
     ),
     'priority' =>  array(
-      'keys' => array('priority' => 1),
+      'keys' => array('priority' => -1),
     ),
+  );
+
+  /**
+   * Standard sorting
+   * @var array
+   */
+  protected $_query = array(
+    'order' => array('priority' => 'DESC'),
   );
 
   /**
