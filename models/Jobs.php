@@ -18,6 +18,20 @@ class Jobs extends \lithium\data\Model {
    */
   const MAX_RUN_TIME = '4 hours';
   
+
+  /**
+   * Indexes
+   * @var array
+  */
+  static public $_indexes = array(
+    'run_at' =>  array(
+      'keys' => array('run_at' => 1),
+    ),
+    'priority' =>  array(
+      'keys' => array('priority' => 1),
+    ),
+  );
+
   /**
    * @var bool
    */
