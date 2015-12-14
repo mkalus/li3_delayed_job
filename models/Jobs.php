@@ -27,6 +27,9 @@ class Jobs extends \lithium\data\Model {
     'run_at' =>  array(
       'keys' => array('run_at' => 1),
     ),
+    'unique_key' =>  array(
+      'keys' => array('unique_key' => 1),
+    ),
     'priority' =>  array(
       'keys' => array('priority' => -1),
     ),
@@ -135,13 +138,14 @@ class Jobs extends \lithium\data\Model {
   /**
    * Add a job to the queue
    *
-   * @param $job stdClass
+   * @param $object object
+   * @param $uniqueKey string unique key to not add double jobs
    * @param $priority int
    * @param $runAt MongoDate|string
    * @return bool
    * @throws ErrorException
    */
-  public static function enqueue($object, $priority = 0, $runAt = null) {
+  public static function enqueue($object, $uniqueKey = null, $priority = 0, $runAt = null) {
     if(!method_exists($object, 'perform')) {
       throw new ErrorException('Cannot enqueue items which do not respond to perform');
     }
@@ -149,16 +153,26 @@ class Jobs extends \lithium\data\Model {
     if(!is_a($runAt, 'MongoDate')) {
       $runAt = new MongoDate($runAt);
     }
-    
+
+    $handler = base64_encode(serialize($object));
+    if (empty($uniqueKey)) {
+      $uniqueKey = md5($handler);
+    }
+
+    // do we have a job with a certain unique key already?
+    $jobs = Jobs::count(array('conditions' => array('unique_key' => $uniqueKey)));
+    if ($jobs > 0) return null; // job already exists
+
     $data = array(
       'attempts' => 0,
-      'handler' => base64_encode(serialize($object)),
+      'handler' => $handler,
       'priority' => $priority,
       'run_at' => $runAt,
       'completed_at' => null,
       'failed_at' => null,
       'locked_at' => null,
       'locked_by' => null,
+      'unique_key' => $uniqueKey
     );
 
     $job = Jobs::create($data);
@@ -310,7 +324,7 @@ class Jobs extends \lithium\data\Model {
     return compact('success', 'failure');
   }
   
-  public static function logException($e) {
+  public function logException($e) {
     print_r($e);
     Logger::error('* [JOB] ',$this->name.' failed with '.$e->message());
     Logger::error($e);
