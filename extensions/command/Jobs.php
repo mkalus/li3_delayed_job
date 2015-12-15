@@ -31,6 +31,9 @@ class Jobs extends \lithium\console\Command {
    * @param $max_priority   int
    */
   public function work($quiet = false, $minPriority = null, $maxPriority = null) {
+    if (empty($quiet)) $quiet = false;
+    if ($minPriority !== null) $minPriority = intval($minPriority);
+    if ($maxPriority !== null) $maxPriority = intval($maxPriority);
     $worker = new Workers(compact('quiet', 'minPriority', 'maxPriority'));
     $worker->start();
   }
