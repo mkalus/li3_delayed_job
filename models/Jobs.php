@@ -191,7 +191,7 @@ class Jobs extends \lithium\data\Model {
   /**
    * Find and lock a job ready to be run
    *
-   * @return bool|\lithium\data\entity\Document
+   * @return bool|\lithium\data\entity\Document -> only _id extracted
    */
   public static function findAvailable($limit = 5, $maxRunTime = self::MAX_RUN_TIME) {
     $conditions = array(
@@ -207,7 +207,9 @@ class Jobs extends \lithium\data\Model {
       $conditions['priority'] = array('$lt' => static::$maxPriority);
     }
 
-    return Jobs::all(compact('conditions', 'limit'));
+    $fields = array('_id');
+
+    return Jobs::all(compact('conditions', 'limit', 'fields'));
   }
   
   /**
@@ -268,9 +270,13 @@ class Jobs extends \lithium\data\Model {
     $jobs = static::findAvailable(5, $maxRunTime);
   
     foreach($jobs as $job) {
-      $t = $job->runWithLock($maxRunTime);
-      if(!is_null($t)) {
-        return $t;
+      // does this job have a lock already?
+      $job = static::find($job->_id);
+      if ($job->locked_at == null) {
+        $t = $job->runWithLock($maxRunTime);
+        if (!is_null($t)) {
+          return $t;
+        }
       }
     }
     
@@ -342,7 +348,7 @@ class Jobs extends \lithium\data\Model {
    * @param null $workerHost
    */
   public static function rescheduleFailedJobs($workerHost = null) {
-    $workerHost !== null?  $workerHost : gethostname();
+    $workerHost = $workerHost !== null ?  $workerHost : gethostname();
 
     // find locked jobs
     $conditions = array(
