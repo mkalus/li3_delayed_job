@@ -37,4 +37,11 @@ class Jobs extends \lithium\console\Command {
     $worker = new Workers(compact('quiet', 'minPriority', 'maxPriority'));
     $worker->start();
   }
+
+  /**
+   * Reschedule failed jobs
+   */
+  public function reschedule() {
+    DelayedJobs::rescheduleFailedJobs();
+  }
 }

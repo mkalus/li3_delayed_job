@@ -79,6 +79,8 @@ class Jobs extends \lithium\data\Model {
    */
   public $workerHost;
 
+  public $locked_at;
+
   protected $_meta = array(
     'name' => null,
     'title' => null,
@@ -333,6 +335,37 @@ class Jobs extends \lithium\data\Model {
     }
     
     return compact('success', 'failure');
+  }
+
+  /**
+   * Check pids of jobs and reschedule them, if needed
+   * @param null $workerHost
+   */
+  public static function rescheduleFailedJobs($workerHost = null) {
+    $workerHost !== null?  $workerHost : gethostname();
+
+    // find locked jobs
+    $conditions = array(
+        'locked_at' => array('$ne' => null),
+        'locked_by_host' => $workerHost
+    );
+    $limit = 100;
+    $lockedJobs = Jobs::all(compact('conditions', 'limit'));
+
+    foreach ($lockedJobs as $job) {
+      echo " * Checking ".$job->unique_key;
+      // check each locked job and check, if pid exists
+      $pid = intval($job->locked_by_pid);
+      if (empty($job->locked_by_pid) || !file_exists("/proc/$pid")) {
+        // reset data
+        $job->locked_at = null;
+        $job->locked_by_host = null;
+        $job->locked_by_pid = null;
+        $job->save();
+        echo " - reset";
+      }
+      echo "\n";
+    }
   }
   
   public function logException($e) {
