@@ -288,7 +288,7 @@ class Jobs extends \lithium\data\Model {
       
       Logger::info(sprintf('* [JOB] '.$this->name.' completed after %.4f', $runtime));
       return true;
-    } catch(Exception $e) {
+    } catch(\Error $e) {
       $this->reschedule($e->getMessage());
       $this->logException($e);
       return false;
