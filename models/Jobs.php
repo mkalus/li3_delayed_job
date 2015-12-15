@@ -177,7 +177,8 @@ class Jobs extends \lithium\data\Model {
       'completed_at' => null,
       'failed_at' => null,
       'locked_at' => null,
-      'locked_by' => null,
+      'locked_by_host' => null,
+      'locked_by_pid' => null,
       'unique_key' => $uniqueKey
     );
 
@@ -216,18 +217,19 @@ class Jobs extends \lithium\data\Model {
     unset($this->payload);
   }
   
-  protected function lockExclusively($maxRunTime, $worker) {
+  protected function lockExclusively($maxRunTime, $worker, $host) {
     $time_now = new MongoDate();
 
-    if($this->locked_by != $worker) {
-      $locked = Jobs::update(array('locked_at' => $time_now, 'locked_by' => $worker), array('_id' => $this->_id));
+    if($this->locked_by_host != $host && $this->locked_by_pid != $worker) {
+      $locked = Jobs::update(array('locked_at' => $time_now, 'locked_by_pid' => $worker, 'locked_by_host' => $host), array('_id' => $this->_id));
     } else {
       $locked = Jobs::update(array('locked_at' => $time_now), array('_id' => $this->_id), array('_id' => $this->_id));
     }    
     
     if($locked) {
       $this->locked_at = $time_now;
-      $this->locked_by = $worker;
+      $this->locked_by_host = $host;
+      $this->locked_by_pid = $worker;
       return true;
     }
     
@@ -273,11 +275,12 @@ class Jobs extends \lithium\data\Model {
     return null;
   }
   
-  public function runWithLock($entity, $maxRunTime, $workerName = null) {
-    $workerName = $workerName ? $workerName : $this->workerName;  
+  public function runWithLock($entity, $maxRunTime, $workerHost = null, $workerName = null) {
+    $workerName = $workerName ? $workerName : $this->workerName;
+    $workerHost = $workerHost ? $workerHost : $this->workerHost;
     $this->entity = $entity;
     Logger::info('* [JOB] aquiring lock on '.$this->name);
-    if(!$this->lockExclusively($maxRunTime, $workerName)) {
+    if(!$this->lockExclusively($maxRunTime, $workerName, $workerHost)) {
       Logger::warn('* [JOB] failed to aquire exclusive lock for '.$this->name);
       return null;
     }
@@ -303,7 +306,8 @@ class Jobs extends \lithium\data\Model {
    */
   public function unlock() {
     $this->locked_at = null;
-    $this->locked_by = null;
+    $this->locked_by_host = null;
+    $this->locked_by_pid = null;
   }
   
   /**
