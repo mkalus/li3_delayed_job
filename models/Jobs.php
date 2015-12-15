@@ -36,6 +36,9 @@ class Jobs extends \lithium\data\Model {
     'locked_at' =>  array(
       'keys' => array('locked_at' => 1),
     ),
+    'locked_by' =>  array(
+        'keys' => array('locked_by_host' => 1, 'locked_by_pid' => 1),
+    ),
   );
 
   /**
@@ -70,6 +73,11 @@ class Jobs extends \lithium\data\Model {
    * @var string
    */
   public $workerName;
+
+  /**
+   * @var string
+   */
+  public $workerHost;
 
   protected $_meta = array(
     'name' => null,
