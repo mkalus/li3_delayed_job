@@ -33,6 +33,9 @@ class Jobs extends \lithium\data\Model {
     'priority' =>  array(
       'keys' => array('priority' => -1),
     ),
+    'locked_at' =>  array(
+      'keys' => array('locked_at' => 1),
+    ),
   );
 
   /**
@@ -187,6 +190,7 @@ class Jobs extends \lithium\data\Model {
   public static function findAvailable($limit = 5, $maxRunTime = self::MAX_RUN_TIME) {
     $conditions = array(
       'run_at' => array('$lte' => new \MongoDate()),
+      'locked_at' => null,
     );
     
     if(isset(static::$minPriority)) {
