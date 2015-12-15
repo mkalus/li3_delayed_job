@@ -19,6 +19,8 @@ class Workers {
   
   public function start() {
     $this->say('*** Starting job worker');
+    if (Jobs::$minPriority !== null) $this->say("Minimal priority: ".Jobs::$minPriority);
+    if (Jobs::$maxPriority !== null) $this->say("Maximal priority: ".Jobs::$maxPriority);
     
     try {
       while(true) {
