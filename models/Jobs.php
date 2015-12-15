@@ -81,18 +81,13 @@ class Jobs extends \lithium\data\Model {
   );
   
   public function __construct() {
-    $this->workerName = 'host:'.gethostname().' pid:'.getmypid();
+    $this->workerName = getmypid();
+    $this->workerHost = gethostname();
   }
   
   public function __get($property) {
     if($property == 'name') {
-      if(method_exists($this->payload, 'displayName')) {
-        $this->name = $this->payload->displayName();
-      } else {
-        $this->name = get_class($this->payload);
-      }
-      
-      return $this->name;
+      return $this->unique_key;
     }
     
     if($property == 'payload') {
