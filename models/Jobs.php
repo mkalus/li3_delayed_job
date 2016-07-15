@@ -30,6 +30,9 @@ class Jobs extends \lithium\data\Model {
     'unique_key' =>  array(
       'keys' => array('unique_key' => 1),
     ),
+    'group' =>  array(
+      'keys' => array('group' => 1),
+    ),
     'priority' =>  array(
       'keys' => array('priority' => -1),
     ),
@@ -58,7 +61,12 @@ class Jobs extends \lithium\data\Model {
    *
    */
   protected $entity;
-  
+
+  /**
+   * @var string
+   */
+  public static $group = null;
+
   /**
    * @var int
    */
@@ -148,12 +156,13 @@ class Jobs extends \lithium\data\Model {
    *
    * @param $object object
    * @param $uniqueKey string unique key to not add double jobs
+   * @param $group string group the joub belongs to
    * @param $priority int
    * @param $runAt MongoDate|string
    * @return bool
    * @throws ErrorException
    */
-  public static function enqueue($object, $uniqueKey = null, $priority = 0, $runAt = null) {
+  public static function enqueue($object, $uniqueKey = null, $group = null, $priority = 0, $runAt = null) {
     if(!method_exists($object, 'perform')) {
       throw new ErrorException('Cannot enqueue items which do not respond to perform');
     }
@@ -174,6 +183,7 @@ class Jobs extends \lithium\data\Model {
     $data = array(
       'attempts' => 0,
       'handler' => $handler,
+      'group' => $group,
       'priority' => $priority,
       'run_at' => $runAt,
       'completed_at' => null,
@@ -198,7 +208,11 @@ class Jobs extends \lithium\data\Model {
       'run_at' => array('$lte' => new \MongoDate()),
       'locked_at' => null,
     );
-    
+
+    if(isset(static::$group)) {
+      $conditions['group'] = static::$group;
+	}
+
     if(isset(static::$minPriority)) {
       $conditions['priority'] = array('$gte' => static::$minPriority);
     }

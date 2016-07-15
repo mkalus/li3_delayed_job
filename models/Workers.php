@@ -10,15 +10,18 @@ class Workers {
   protected $quiet = false;
   
   public function __construct(array $config = array()) {
-    $config += array('quiet' => false, 'minPriority' => null, 'maxPriority' => null);
+    $config += array('quiet' => false, 'group' => null, 'minPriority' => null, 'maxPriority' => null);
     $this->quiet = $config['quiet'];
-    
+
+    Jobs::$group = $config['group'];
+
     Jobs::$minPriority = $config['minPriority'];
     Jobs::$maxPriority = $config['maxPriority'];
   }
   
   public function start() {
     $this->say('*** Starting job worker');
+    if (Jobs::$group !== null) $this->say("Run in group: ".Jobs::$group);
     if (Jobs::$minPriority !== null) $this->say("Minimal priority: ".Jobs::$minPriority);
     if (Jobs::$maxPriority !== null) $this->say("Maximal priority: ".Jobs::$maxPriority);
     

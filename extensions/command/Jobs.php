@@ -22,19 +22,21 @@ class Jobs extends \lithium\console\Command {
   public function clear() {
     DelayedJobs::remove();
   }
-  
+
   /**
    * Start a delayed_job worker.
    *
    * @param $quiet          bool
-   * @param $min_priority   int
-   * @param $max_priority   int
+   * @param $group string
+   * @param $minPriority   int
+   * @param $maxPriority   int
    */
-  public function work($quiet = false, $minPriority = null, $maxPriority = null) {
+  public function work($quiet = false, $group = null, $minPriority = null, $maxPriority = null) {
     if (empty($quiet)) $quiet = false;
+    if (empty($group)) $group = null;
     if ($minPriority !== null) $minPriority = intval($minPriority);
     if ($maxPriority !== null) $maxPriority = intval($maxPriority);
-    $worker = new Workers(compact('quiet', 'minPriority', 'maxPriority'));
+    $worker = new Workers(compact('quiet', 'group', 'minPriority', 'maxPriority'));
     $worker->start();
   }
 
